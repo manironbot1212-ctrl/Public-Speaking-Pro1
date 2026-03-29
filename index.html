@@ -83,20 +83,17 @@
                 const camera = this.el.querySelector('a-camera');
                 const rig = this.el;
                 
-                // Get the camera's forward vector
                 camera.object3D.getWorldDirection(this.camDir);
-                this.camDir.y = 0; // Keep movement on the ground plane
+                this.camDir.y = 0; 
                 this.camDir.normalize();
 
-                // Calculate perpendicular vector for strafing
                 const strafeDir = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), this.camDir).normalize();
 
-                // Move Rig: -y is forward, x is strafe
                 const moveForward = -window.joystickData.y;
                 const moveStrafe = -window.joystickData.x;
 
                 const pos = rig.getAttribute('position');
-                const frameSpeed = this.data.speed * (delta / 16); // Normalize speed to framerate
+                const frameSpeed = this.data.speed * (delta / 16); 
 
                 pos.x += (this.camDir.x * moveForward + strafeDir.x * moveStrafe) * frameSpeed;
                 pos.z += (this.camDir.z * moveForward + strafeDir.z * moveStrafe) * frameSpeed;
@@ -116,8 +113,7 @@
         <div id="btn-b" class="action-btn">B</div>
     </div>
 
-    <a-scene gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/v1/decoders/;" 
-             cursor="rayOrigin: mouse" 
+    <a-scene cursor="rayOrigin: mouse" 
              raycaster="objects: .clickable" 
              renderer="antialias: true; colorManagement: true;">
         
@@ -183,12 +179,11 @@
 
         const updateRect = () => { rect = zone.getBoundingClientRect(); };
         window.addEventListener('resize', updateRect);
-        window.addEventListener('scroll', updateRect);
 
         const handleMove = (e) => {
             if (!active) return;
-            e.preventDefault();
-            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+            e.stopImmediatePropagation();
             
             const touch = e.touches ? e.touches : e;
             const centerX = rect.left + rect.width / 2;
@@ -224,7 +219,6 @@
         });
 
         const resetJoystick = (e) => {
-            if (!active) return;
             active = false;
             stick.style.left = '50%';
             stick.style.top = '50%';
@@ -236,15 +230,16 @@
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('mousemove', handleMove);
 
-        // BUTTON A: FIXED RAYCASTER LOGIC
+        // BUTTON A: FIXED CLICK LOGIC
         const btnA = document.getElementById('btn-a');
         const triggerA = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+            e.stopImmediatePropagation();
             const camera = document.getElementById('main-cam');
-            const raycaster = camera.components.raycaster;
-            if (raycaster && raycaster.intersections && raycaster.intersections.length > 0) {
-                const intersect = raycaster.intersections;
+            const raycasterComp = camera.components.raycaster;
+            if (raycasterComp && raycasterComp.intersections && raycasterComp.intersections.length > 0) {
+                // Accessing the first intersection properly
+                const intersect = raycasterComp.intersections;
                 if (intersect.object && intersect.object.el && intersect.object.el.classList.contains('clickable')) {
                     intersect.object.el.emit('click');
                 }
@@ -254,7 +249,10 @@
         btnA.addEventListener('mousedown', triggerA);
 
         const btnB = document.getElementById('btn-b');
-        btnB.addEventListener('touchstart', (e) => { e.preventDefault(); location.reload(); }, {passive: false});
+        btnB.addEventListener('touchstart', (e) => { 
+            if (e.cancelable) e.preventDefault(); 
+            location.reload(); 
+        }, {passive: false});
         btnB.addEventListener('mousedown', () => location.reload());
 
         // 10 QUESTION BANK
@@ -302,7 +300,9 @@
                 
                 bg.addEventListener('mouseenter', () => bg.setAttribute('color', '#d4af37'));
                 bg.addEventListener('mouseleave', () => bg.setAttribute('color', '#eee'));
-                bg.addEventListener('click', () => {
+                
+                // Unified click listener
+                el.addEventListener('click', (e) => {
                     if (i === data.a) score++;
                     index++;
                     updateUI();
