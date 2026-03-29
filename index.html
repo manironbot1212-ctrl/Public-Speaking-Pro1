@@ -25,6 +25,7 @@
             border-radius: 50%;
             pointer-events: auto;
             backdrop-filter: blur(5px);
+            touch-action: none;
         }
         #joystick-stick {
             position: absolute;
@@ -34,6 +35,7 @@
             border-radius: 50%;
             transform: translate(-50%, -50%);
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            pointer-events: none;
         }
 
         /* Action Buttons (A/B) */
@@ -47,6 +49,7 @@
             border: 2px solid rgba(255,255,255,0.4);
             backdrop-filter: blur(5px);
             user-select: none;
+            touch-action: none;
         }
         #btn-a { bottom: 120px; right: 40px; background: rgba(0, 204, 255, 0.5); }
         #btn-b { bottom: 40px; right: 120px; background: rgba(255, 50, 50, 0.5); }
@@ -58,6 +61,7 @@
             padding: 10px 20px; border-radius: 8px;
             pointer-events: none; font-size: 12px;
             text-transform: uppercase; letter-spacing: 1px;
+            z-index: 101;
         }
     </style>
     <script>
@@ -65,20 +69,24 @@
         window.joystickData = { x: 0, y: 0 };
 
         AFRAME.registerComponent('joystick-move', {
-            schema: { speed: { default: 0.08 } },
+            schema: { speed: { default: 0.1 } },
             tick: function (time, delta) {
                 if (window.joystickData.x === 0 && window.joystickData.y === 0) return;
 
                 const camera = document.querySelector('a-camera');
                 const rig = this.el;
                 
-                // Get forward direction from camera rotation
-                const rotation = camera.getAttribute('rotation');
-                const angle = (rotation.y * Math.PI) / 180;
+                // Get rotation from camera's object3D directly for better accuracy in AR/VR
+                const rotation = camera.object3D.rotation;
+                const angle = rotation.y;
 
-                // X/Y movement calculation based on rotation
-                const moveX = window.joystickData.x * Math.cos(angle) + window.joystickData.y * Math.sin(angle);
-                const moveZ = window.joystickData.x * Math.sin(angle) - window.joystickData.y * Math.cos(angle);
+                // Move direction calculation: y is forward/back, x is strafe
+                // We use -joystickData.y because "forward" in A-Frame is -Z
+                const forward = -window.joystickData.y;
+                const strafe = window.joystickData.x;
+
+                const moveX = strafe * Math.cos(angle) + forward * Math.sin(angle);
+                const moveZ = strafe * Math.sin(angle) - forward * Math.cos(angle);
 
                 const pos = rig.getAttribute('position');
                 pos.x += moveX * this.data.speed;
@@ -155,7 +163,14 @@
         </a-entity>
 
         <a-entity id="rig" position="0 0 1.5" joystick-move>
-            <a-camera look-controls="pointerLockEnabled: false"></a-camera>
+            <a-camera look-controls="pointerLockEnabled: false">
+                <!-- Visual reticle for button 'A' targeting -->
+                <a-entity cursor="fuse: false" 
+                          position="0 0 -1" 
+                          geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" 
+                          material="color: #d4af37; shader: flat; opacity: 0.5">
+                </a-entity>
+            </a-camera>
         </a-entity>
 
         <a-entity id="results-screen" position="0 2 -1.5" visible="false">
@@ -171,17 +186,10 @@
         const stick = document.getElementById('joystick-stick');
         let active = false;
 
-        zone.addEventListener('touchstart', (e) => active = true);
-        zone.addEventListener('touchend', () => {
-            active = false;
-            stick.style.left = '50%';
-            stick.style.top = '50%';
-            window.joystickData = { x: 0, y: 0 };
-        });
-
-        zone.addEventListener('touchmove', (e) => {
+        const handleMove = (e) => {
             if (!active) return;
-            const touch = e.touches;
+            e.preventDefault();
+            const touch = e.touches ? e.touches : e;
             const rect = zone.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
@@ -199,23 +207,51 @@
             stick.style.left = (50 + (dx / rect.width) * 100) + '%';
             stick.style.top = (50 + (dy / rect.height) * 100) + '%';
             
+            // Normalize values for the movement script
             window.joystickData.x = dx / max;
             window.joystickData.y = dy / max;
+        };
+
+        zone.addEventListener('touchstart', (e) => { active = true; handleMove(e); }, {passive: false});
+        zone.addEventListener('mousedown', (e) => { active = true; handleMove(e); });
+
+        window.addEventListener('touchend', () => {
+            active = false;
+            stick.style.left = '50%';
+            stick.style.top = '50%';
+            window.joystickData = { x: 0, y: 0 };
         });
+        window.addEventListener('mouseup', () => {
+            active = false;
+            stick.style.left = '50%';
+            stick.style.top = '50%';
+            window.joystickData = { x: 0, y: 0 };
+        });
+
+        window.addEventListener('touchmove', handleMove, {passive: false});
+        window.addEventListener('mousemove', handleMove);
 
         // A/B BUTTON LOGIC
-        document.getElementById('btn-a').addEventListener('touchstart', () => {
-            // "A" mimics a click on the scene center for answering questions
-            const raycaster = document.querySelector('[raycaster]').components.raycaster;
-            const intersection = raycaster.intersections;
-            if (intersection && intersection.object.el.classList.contains('clickable')) {
-                intersection.object.el.click();
+        const btnA = document.getElementById('btn-a');
+        const triggerA = (e) => {
+            e.preventDefault();
+            // Trigger raycaster click from the camera center
+            const camera = document.querySelector('a-camera');
+            const raycaster = camera.components.raycaster;
+            if (raycaster && raycaster.intersections.length > 0) {
+                const intersection = raycaster.intersections;
+                if (intersection.object.el.classList.contains('clickable')) {
+                    intersection.object.el.emit('click');
+                }
             }
-        });
+        };
 
-        document.getElementById('btn-b').addEventListener('touchstart', () => {
-            location.reload(); // Reset the experience
-        });
+        btnA.addEventListener('touchstart', triggerA, {passive: false});
+        btnA.addEventListener('mousedown', triggerA);
+
+        const btnB = document.getElementById('btn-b');
+        btnB.addEventListener('touchstart', (e) => { e.preventDefault(); location.reload(); }, {passive: false});
+        btnB.addEventListener('mousedown', () => location.reload());
 
         // INTERVIEW LOGIC
         const bank = [
@@ -246,7 +282,14 @@
                 const bg = document.createElement('a-plane');
                 bg.setAttribute('width', '0.8'); bg.setAttribute('height', '0.15');
                 bg.setAttribute('color', '#fdf6e3'); bg.setAttribute('class', 'clickable');
-                bg.onclick = () => { if(i === data.a) score++; index++; updateUI(); };
+                
+                // Use .emit('click') style for compatibility with Button A trigger
+                el.addEventListener('click', () => { 
+                    if(i === data.a) score++; 
+                    index++; 
+                    updateUI(); 
+                });
+
                 const txt = document.createElement('a-text');
                 txt.setAttribute('value', opt); txt.setAttribute('color', '#2b1d0e');
                 txt.setAttribute('align', 'center'); txt.setAttribute('width', '0.7');
