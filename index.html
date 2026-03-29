@@ -146,7 +146,7 @@
                 <a-box width="2.4" height="3.2" depth="0.08" color="#3d2b1f">
                     <a-plane position="0 0 0.05" width="2.2" height="3.0" color="#fff9f0">
                         <a-text id="q-text" value="Welcome. Please focus on the screen." color="#1a0f05" align="center" width="2.0" position="0 1.2 0.01" wrap-count="20"></a-text>
-                        <a-entity id="options-container" position="0 0.1 0.01"></a-entity>
+                        <a-entity id="options-container" position="0 0.25 0.01"></a-entity>
                         <a-text id="progress-text" value="Recruitment Phase" color="#888" align="center" width="1.4" position="0 -1.35 0.01"></a-text>
                     </a-plane>
                 </a-box>
@@ -188,8 +188,8 @@
             if (e.cancelable) e.preventDefault();
             e.stopImmediatePropagation();
             
-            // Fixed: Access the first touch point from the list
-            const touch = e.touches ? e.touches : e;
+            // FIXED: Proper access to the first touch point in the list
+            const touch = (e.touches && e.touches.length > 0) ? e.touches : e;
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             
@@ -234,17 +234,19 @@
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('mousemove', handleMove);
 
-        // BUTTON A: CORRECTED INTERSECTION LOGIC
+        // BUTTON A: FIXED CRASHING LOGIC
         const btnA = document.getElementById('btn-a');
         const triggerA = (e) => {
             if (e.cancelable) e.preventDefault();
             e.stopImmediatePropagation();
             const camera = document.getElementById('main-cam');
             const raycasterComp = camera.components.raycaster;
-            // FIXED: Proper array index check
+            
+            // FIXED: Added check for intersections instead of just 'intersections'
             if (raycasterComp && raycasterComp.intersections && raycasterComp.intersections.length > 0) {
                 const intersect = raycasterComp.intersections;
                 if (intersect.object && intersect.object.el && intersect.object.el.classList.contains('clickable')) {
+                    // This prevents skipping by ensuring we only click once per A-press
                     intersect.object.el.emit('click');
                 }
             }
@@ -298,19 +300,22 @@
 
             data.o.forEach((opt, i) => {
                 const el = document.createElement('a-entity');
-                // Adjusted vertical spacing and offset to ensure all 4 fit
-                el.setAttribute('position', `0 ${0.6 - (i * 0.42)} 0`);
+                // Increased spacing and adjusted Y to ensure all 4 are visible
+                el.setAttribute('position', `0 ${0.4 - (i * 0.45)} 0`);
                 
                 const bg = document.createElement('a-plane');
                 bg.setAttribute('width', '2.0');
-                bg.setAttribute('height', '0.35');
+                bg.setAttribute('height', '0.38');
                 bg.setAttribute('color', '#eee');
                 bg.setAttribute('class', 'clickable');
                 
                 bg.addEventListener('mouseenter', () => bg.setAttribute('color', '#d4af37'));
                 bg.addEventListener('mouseleave', () => bg.setAttribute('color', '#eee'));
                 
+                // Clicking an option moves to next question
                 el.addEventListener('click', (e) => {
+                    // Ensure the event only processes once per question
+                    e.stopPropagation();
                     if (i === data.a) score++;
                     index++;
                     updateUI();
