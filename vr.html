@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Executive Suite</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #overlay {
+            position: absolute;
+            bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(40, 30, 20, 0.85); color: #fdf6e3;
+            padding: 12px 24px; border-radius: 8px;
+            pointer-events: none; z-index: 10; font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="overlay">WASD to Explore | Mouse to Look | Click Clipboard to Answer</div>
+
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" shadow="type: pcfsoft">
+        
+        <!-- LUXURY ARCHITECTURE & WARMTH -->
+        <a-entity id="room">
+            <!-- Floor: Rich Oak Wood -->
+            <a-plane position="0 0 0" rotation="-90 0 0" width="20" depth="20" color="#2b1d0e" material="roughness: 0.3; metalness: 0.2"></a-plane>
+            
+            <!-- Ceiling: Recessed lighting -->
+            <a-box position="0 4.5 0" width="12" height="0.2" depth="12" color="#f5f5f5"></a-box>
+            <a-box position="0 4.4 0" width="8" height="0.3" depth="8" color="#ffffff" material="emissive: #ffccaa; emissiveIntensity: 0.15"></a-box>
+
+            <!-- Walls: Sage Green & Walnut Accents -->
+            <a-plane position="0 2.25 -6" width="12" height="4.5" color="#2f3e30" material="roughness: 0.9"></a-plane> <!-- Back -->
+            <a-plane position="-6 2.25 0" rotation="0 90 0" width="12" height="4.5" color="#3a3a3a"></a-plane> <!-- Left -->
+            <a-plane position="6 2.25 0" rotation="0 -90 0" width="12" height="4.5" color="#3a3a3a"></a-plane> <!-- Right -->
+            
+            <!-- Floor Molding -->
+            <a-box position="0 0.1 -5.95" width="12" height="0.2" depth="0.1" color="#1a0f05"></a-box>
+        </a-entity>
+
+        <!-- DECORATIONS -->
+        
+        <!-- Wall Shelves & Books -->
+        <a-entity id="shelves" position="-4 2 -5.8">
+            <a-box width="3" height="0.05" depth="0.4" color="#1a0f05" position="0 0.8 0"></a-box>
+            <a-box width="3" height="0.05" depth="0.4" color="#1a0f05" position="0 0.2 0"></a-box>
+            <!-- Mock Books -->
+            <a-box width="0.1" height="0.4" depth="0.3" color="#800" position="-1 1.05 0"></a-box>
+            <a-box width="0.08" height="0.45" depth="0.3" color="#005" position="-0.85 1.05 0"></a-box>
+            <a-box width="0.12" height="0.38" depth="0.3" color="#040" position="-0.7 1.05 0"></a-box>
+            <a-box width="0.1" height="0.4" depth="0.3" color="#550" position="0.5 0.45 0"></a-box>
+            <a-box width="0.08" height="0.45" depth="0.3" color="#333" position="0.65 0.45 0"></a-box>
+        </a-entity>
+
+        <!-- Framed Pictures -->
+        <a-entity id="pictures" position="3 2.5 -5.9">
+            <a-box width="2" height="1.5" depth="0.05" color="#111"></a-box>
+            <a-plane position="0 0 0.03" width="1.8" height="1.3" color="#eee" material="shader: flat">
+                <a-circle radius="0.4" color="#d4af37" position="-0.3 0.2 0.01"></a-circle>
+                <a-box width="1" height="0.1" color="#333" position="0.2 -0.3 0.01" rotation="0 0 15"></a-box>
+            </a-plane>
+        </a-entity>
+
+        <!-- Potted Plant -->
+        <a-entity id="plant" position="-5 0 -4">
+            <a-cylinder radius="0.3" height="0.6" color="#443" position="0 0.3 0"></a-cylinder>
+            <a-cone radius-bottom="0.05" radius-top="0.4" height="2" color="#2d5a27" position="0 1.5 0" material="opacity: 0.9"></a-cone>
+            <a-cone radius-bottom="0.05" radius-top="0.3" height="1.8" color="#1e4d1a" position="0.2 1.4 0.1" rotation="10 0 10"></a-cone>
+        </a-entity>
+
+        <!-- LIGHTING RIG -->
+        <a-entity light="type: ambient; color: #ffe6cc; intensity: 0.5"></a-entity>
+        <a-entity light="type: point; intensity: 0.7; distance: 12; decay: 2; castShadow: true; color: #fff4e6" position="0 3.5 -1"></a-entity>
+        
+        <!-- Floor Lamp -->
+        <a-entity id="floor-lamp" position="5 0 -5">
+            <a-cylinder radius="0.05" height="2.5" color="#d4af37"></a-cylinder>
+            <a-cone radius-bottom="0.4" radius-top="0.2" height="0.5" position="0 1.5 0" color="#fdf6e3" material="emissive: #fff; emissiveIntensity: 0.4"></a-cone>
+            <a-entity light="type: point; intensity: 0.4; distance: 5; color: #ffcc88" position="0 1.5 0"></a-entity>
+        </a-entity>
+
+        <!-- EXECUTIVE DESK -->
+        <a-entity position="0 0 -1.8">
+            <a-box width="3.5" height="0.1" depth="1.5" position="0 0.85 0" color="#1a0f05"></a-box>
+            <a-box width="2" height="0.02" depth="1" position="0 0.865 0" color="#111"></a-box>
+            
+            <a-entity position="1 0.86 0.1" rotation="0 -20 0">
+                <a-box width="0.6" height="0.02" depth="0.4" color="#222"></a-box>
+                <a-box width="0.6" height="0.02" depth="0.4" position="0 0.2 0.2" rotation="-110 0 0" color="#222">
+                    <a-plane width="0.55" height="0.35" position="0 0.011 0" color="#000" material="emissive: #0088ff; emissiveIntensity: 0.3"></a-plane>
+                </a-box>
+            </a-entity>
+        </a-entity>
+        
+        <!-- INTERVIEWER -->
+        <a-entity id="interviewer" position="0 0 -3">
+            <a-cylinder position="0 0.8 0" radius="0.35" height="1.6" color="#1a1a1a"></a-cylinder> 
+            <a-box position="0 1.2 0.3" width="0.1" height="0.6" depth="0.05" color="#500"></a-box>
+            <a-sphere position="0 1.8 0" radius="0.25" color="#f3c2a8">
+                <a-box position="0 -0.05 0.24" width="0.18" height="0.02" depth="0.02" color="#000" opacity="0.4"></a-box>
+            </a-sphere>
+            
+            <!-- CLIPBOARD -->
+            <a-entity id="clipboard" position="0.6 1.4 1.1" rotation="-15 -25 0">
+                <a-box width="1" height="1.3" depth="0.04" color="#3d2b1f">
+                    <a-plane id="paper" position="0 0 0.03" width="0.9" height="1.2" color="#fff9f0">
+                        <!-- Moved question text higher up to clear space for answers -->
+                        <a-text id="q-text" value="Welcome. Let us begin." color="#2b1d0e" align="center" width="0.8" position="0 0.45 0.01" wrap-count="22" font="kelsonsans"></a-text>
+                        <!-- Options Container -->
+                        <a-entity id="options-container" position="0 0.05 0.01"></a-entity>
+                        <a-text id="progress" value="..." color="#888" align="center" width="0.6" position="0 -0.52 0.01"></a-text>
+                    </a-plane>
+                </a-box>
+            </a-entity>
+        </a-entity>
+
+        <!-- CAMERA RIG -->
+        <a-entity id="rig" position="0 0 1.5">
+            <a-camera look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 35"></a-camera>
+        </a-entity>
+
+        <!-- RESULTS OVERLAY -->
+        <a-entity id="results-screen" position="0 2 -1.5" visible="false" scale="0.1 0.1 0.1">
+            <a-plane width="3" height="2" color="#2b1d0e" material="opacity: 0.95; transparent: true">
+                <a-text id="final-score" value="" align="center" width="2.5" position="0 0.3 0.1" color="#fdf6e3"></a-text>
+                <a-box position="0 -0.6 0.2" width="1.2" height="0.3" depth="0.1" color="#d4af37" class="clickable" onclick="location.reload()">
+                    <a-text value="NEW INTERVIEW" align="center" width="2.5" position="0 0 0.06" color="#1a0f05"></a-text>
+                </a-box>
+            </a-plane>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const bank = [
+            { q: "What is the primary difference between var, let, and const?", o: ["Scope and hoisting", "Execution speed", "File size", "Browser support"], a: 0 },
+            { q: "How do you handle asynchronous operations in JS?", o: ["setTimeout only", "Loops", "Promises and Async/Await", "Event listeners"], a: 2 },
+            { q: "What does the 'flex-direction' property do in CSS?", o: ["Sets font style", "Defines axis of items", "Changes background", "Adds padding"], a: 1 },
+            { q: "What is the Virtual DOM in React?", o: ["A copy of the real DOM", "A browser plugin", "A 3D graphics API", "Server-side logic"], a: 0 },
+            { q: "What is the purpose of the 'git push' command?", o: ["Delete local code", "Upload to server", "Download updates", "Merge branches"], a: 1 },
+            { q: "Explain the 'this' keyword in JavaScript.", o: ["Refers to current object", "Points to next file", "Always global", "A math constant"], a: 0 },
+            { q: "What is a 'semantic' HTML element?", o: ["An invisible tag", "Meaningful tags (e.g. <nav>)", "A CSS class", "A JavaScript library"], a: 1 },
+            { q: "How do you improve website performance?", o: ["More images", "Large scripts", "Caching and Compression", "Using old HTML"], a: 2 }
+        ];
+
+        let index = 0;
+        let score = 0;
+
+        function updateUI() {
+            if (index >= bank.length) {
+                showResults();
+                return;
+            }
+
+            const data = bank[index];
+            document.getElementById('q-text').setAttribute('value', data.q);
+            document.getElementById('progress').setAttribute('value', `EVALUATION: ${index + 1} / ${bank.length}`);
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+
+            data.o.forEach((opt, i) => {
+                const optEntity = document.createElement('a-entity');
+                // Reduced spacing between options (from 0.22 to 0.2) to fit all 4
+                optEntity.setAttribute('position', `0 ${0.15 - (i * 0.2)} 0`);
+
+                const bg = document.createElement('a-plane');
+                bg.setAttribute('width', '0.85');
+                bg.setAttribute('height', '0.16'); // Slightly shorter background
+                bg.setAttribute('color', '#fdf6e3');
+                bg.setAttribute('class', 'clickable');
+                
+                bg.addEventListener('mouseenter', () => {
+                    bg.setAttribute('color', '#d4af37');
+                    bg.setAttribute('scale', '1.03 1.03 1.03');
+                });
+                bg.addEventListener('mouseleave', () => {
+                    bg.setAttribute('color', '#fdf6e3');
+                    bg.setAttribute('scale', '1 1 1');
+                });
+                bg.addEventListener('click', () => handleAnswer(i));
+
+                const text = document.createElement('a-text');
+                text.setAttribute('value', opt);
+                text.setAttribute('color', '#2b1d0e');
+                text.setAttribute('align', 'center');
+                text.setAttribute('width', '0.75');
+                text.setAttribute('position', '0 0 0.01');
+                text.setAttribute('wrap-count', '25');
+
+                optEntity.appendChild(bg);
+                optEntity.appendChild(text);
+                container.appendChild(optEntity);
+            });
+        }
+
+        function handleAnswer(i) {
+            if (index >= bank.length) return;
+            if (i === bank[index].a) score++;
+            index++;
+            updateUI();
+        }
+
+        function showResults() {
+            document.getElementById('clipboard').setAttribute('visible', 'false');
+            const screen = document.getElementById('results-screen');
+            screen.setAttribute('visible', 'true');
+            screen.setAttribute('animation', 'property: scale; to: 1 1 1; dur: 800; easing: easeOutQuad');
+            
+            const total = bank.length;
+            const percentage = Math.round((score / total) * 100);
+            const status = percentage >= 75 ? "RECOMMENDED FOR HIRE" : "KEEP ON FILE";
+            document.getElementById('final-score').setAttribute('value', `INTERVIEW SUMMARY\n\nSCORE: ${score} / ${total}\n${percentage}%\n\n${status}`);
+        }
+
+        window.onload = updateUI;
+    </script>
+</body>
+</html>
