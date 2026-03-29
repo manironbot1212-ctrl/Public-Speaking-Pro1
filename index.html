@@ -2,11 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Executive Tech Interview - 10 Stage Evaluation</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif; 
+            touch-action: none; 
+            background-color: #000;
+            -webkit-user-select: none;
+            user-select: none;
+        }
         
         #gui {
             position: absolute;
@@ -38,18 +46,17 @@
 
         .action-btn {
             position: absolute;
-            width: 70px; height: 70px;
+            width: 75px; height: 75px;
             border-radius: 50%;
             pointer-events: auto;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; font-size: 24px; color: white;
             border: 2px solid rgba(255,255,255,0.4);
             backdrop-filter: blur(5px);
-            user-select: none;
             touch-action: none;
         }
-        #btn-a { bottom: 120px; right: 40px; background: rgba(0, 204, 255, 0.5); }
-        #btn-b { bottom: 40px; right: 120px; background: rgba(255, 50, 50, 0.5); }
+        #btn-a { bottom: 130px; right: 40px; background: rgba(0, 204, 255, 0.6); }
+        #btn-b { bottom: 40px; right: 130px; background: rgba(255, 50, 50, 0.6); }
 
         #overlay-msg {
             position: absolute;
@@ -65,26 +72,35 @@
         window.joystickData = { x: 0, y: 0 };
 
         AFRAME.registerComponent('joystick-move', {
-            schema: { speed: { default: 0.1 } },
-            tick: function () {
+            schema: { speed: { default: 0.15 } },
+            init: function() {
+                this.direction = new THREE.Vector3();
+                this.camDir = new THREE.Vector3();
+            },
+            tick: function (time, delta) {
                 if (window.joystickData.x === 0 && window.joystickData.y === 0) return;
 
-                const camera = document.querySelector('a-camera');
+                const camera = this.el.querySelector('a-camera');
                 const rig = this.el;
                 
-                // Simplified Movement logic
-                // 1. Get current camera rotation in radians
-                const angle = camera.object3D.rotation.y;
+                // Get the camera's forward vector
+                camera.object3D.getWorldDirection(this.camDir);
+                this.camDir.y = 0; // Keep movement on the ground plane
+                this.camDir.normalize();
 
-                // 2. Calculate movement vectors based on joystick input
-                // Forward/Back uses joystick Y, Strafe uses joystick X
-                const dx = window.joystickData.x * Math.cos(angle) + window.joystickData.y * Math.sin(angle);
-                const dz = window.joystickData.x * Math.sin(angle) - window.joystickData.y * Math.cos(angle);
+                // Calculate perpendicular vector for strafing
+                const strafeDir = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), this.camDir).normalize();
 
-                // 3. Apply to position
+                // Move Rig: -y is forward, x is strafe
+                const moveForward = -window.joystickData.y;
+                const moveStrafe = -window.joystickData.x;
+
                 const pos = rig.getAttribute('position');
-                pos.x += dx * this.data.speed;
-                pos.z += dz * this.data.speed;
+                const frameSpeed = this.data.speed * (delta / 16); // Normalize speed to framerate
+
+                pos.x += (this.camDir.x * moveForward + strafeDir.x * moveStrafe) * frameSpeed;
+                pos.z += (this.camDir.z * moveForward + strafeDir.z * moveStrafe) * frameSpeed;
+                
                 rig.setAttribute('position', pos);
             }
         });
@@ -100,56 +116,56 @@
         <div id="btn-b" class="action-btn">B</div>
     </div>
 
-    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" shadow="type: pcfsoft">
+    <a-scene gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/v1/decoders/;" 
+             cursor="rayOrigin: mouse" 
+             raycaster="objects: .clickable" 
+             renderer="antialias: true; colorManagement: true;">
         
-        <!-- ROOM DESIGN -->
         <a-entity id="environment">
-            <a-plane position="0 0 0" rotation="-90 0 0" width="30" depth="30" color="#2b1d0e" material="roughness: 0.4"></a-plane>
-            <a-box position="0 4.5 0" width="16" height="0.2" depth="16" color="#f5f5f5"></a-box>
-            <a-plane position="0 2.25 -8" width="16" height="4.5" color="#2f3e30"></a-plane> 
-            <a-plane position="-8 2.25 0" rotation="0 90 0" width="16" height="4.5" color="#3a3a3a"></a-plane>
-            <a-plane position="8 2.25 0" rotation="0 -90 0" width="16" height="4.5" color="#3a3a3a"></a-plane>
+            <a-plane position="0 0 0" rotation="-90 0 0" width="40" depth="40" color="#2b1d0e" material="roughness: 0.4"></a-plane>
+            <a-box position="0 4.5 0" width="20" height="0.2" depth="20" color="#f5f5f5"></a-box>
+            <a-plane position="0 2.25 -10" width="20" height="4.5" color="#2f3e30"></a-plane> 
+            <a-plane position="-10 2.25 0" rotation="0 90 0" width="20" height="4.5" color="#3a3a3a"></a-plane>
+            <a-plane position="10 2.25 0" rotation="0 -90 0" width="20" height="4.5" color="#3a3a3a"></a-plane>
         </a-entity>
 
-        <a-entity light="type: ambient; color: #ffe6cc; intensity: 0.5"></a-entity>
-        <a-entity light="type: point; intensity: 0.8; distance: 15; color: #fff" position="0 4 -2"></a-entity>
+        <a-entity light="type: ambient; color: #ffe6cc; intensity: 0.6"></a-entity>
+        <a-entity light="type: directional; intensity: 0.5; castShadow: true" position="-1 4 2"></a-entity>
         
-        <!-- DESK AREA -->
-        <a-entity position="0 0 -2.5">
-            <a-box width="4" height="0.1" depth="1.8" position="0 0.85 0" color="#1a0f05"></a-box>
+        <a-entity position="0 0 -3">
+            <a-box width="4" height="0.1" depth="2" position="0 0.85 0" color="#1a0f05"></a-box>
             <a-box width="0.7" height="0.02" depth="0.5" position="1.2 0.86 0.2" rotation="0 -15 0" color="#222">
                 <a-plane width="0.65" height="0.45" position="0 0.01 0.25" rotation="-110 0 0" color="#000" material="emissive: #00f; emissiveIntensity: 0.2"></a-plane>
             </a-box>
         </a-entity>
         
-        <!-- INTERVIEWER & CLIPBOARD -->
-        <a-entity id="interviewer" position="0 0 -4">
+        <a-entity id="interviewer" position="0 0 -5">
             <a-cylinder position="0 0.8 0" radius="0.4" height="1.6" color="#111"></a-cylinder> 
             <a-sphere position="0 1.9 0" radius="0.28" color="#f3c2a8"></a-sphere>
             
-            <a-entity id="clipboard" position="0.8 1.4 1.2" rotation="-10 -30 0">
-                <a-box width="1.2" height="1.6" depth="0.05" color="#3d2b1f">
-                    <a-plane position="0 0.05 0.03" width="1.1" height="1.4" color="#fff9f0">
-                        <a-text id="q-text" value="Welcome to the interview." color="#1a0f05" align="center" width="1" position="0 0.55 0.01" wrap-count="20"></a-text>
+            <a-entity id="clipboard" position="0.9 1.4 1.3" rotation="-10 -30 0">
+                <a-box width="1.3" height="1.8" depth="0.05" color="#3d2b1f">
+                    <a-plane position="0 0.05 0.03" width="1.2" height="1.6" color="#fff9f0">
+                        <a-text id="q-text" value="Please take a seat." color="#1a0f05" align="center" width="1.1" position="0 0.65 0.01" wrap-count="20"></a-text>
                         <a-entity id="options-container" position="0 -0.1 0.01"></a-entity>
-                        <a-text id="progress-text" value="Question 1 of 10" color="#888" align="center" width="0.8" position="0 -0.65 0.01"></a-text>
+                        <a-text id="progress-text" value="Recruitment Phase" color="#888" align="center" width="0.8" position="0 -0.75 0.01"></a-text>
                     </a-plane>
                 </a-box>
             </a-entity>
         </a-entity>
 
-        <!-- RIG & CAMERA -->
         <a-entity id="rig" position="0 0 1" joystick-move>
-            <a-camera look-controls="pointerLockEnabled: false">
+            <a-camera id="main-cam" look-controls="pointerLockEnabled: false">
                 <a-entity cursor="fuse: false" 
+                          raycaster="objects: .clickable"
                           position="0 0 -1" 
-                          geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.025" 
-                          material="color: #d4af37; shader: flat; opacity: 0.7">
+                          geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.018" 
+                          material="color: #d4af37; shader: flat; opacity: 0.8">
                 </a-entity>
             </a-camera>
         </a-entity>
 
-        <a-entity id="results-screen" position="0 2 -2" visible="false">
+        <a-entity id="results-screen" position="0 2 -3" visible="false">
             <a-plane width="4" height="2.5" color="#1a0f05" material="opacity: 0.9">
                 <a-text id="final-score" value="" align="center" width="3.5" position="0 0.2 0.1" color="#d4af37"></a-text>
                 <a-box position="0 -0.7 0.2" width="1.5" height="0.4" color="#2f3e30" class="clickable" onclick="location.reload()">
@@ -160,16 +176,21 @@
     </a-scene>
 
     <script>
-        // JOYSTICK INPUT HANDLING
         const zone = document.getElementById('joystick-zone');
         const stick = document.getElementById('joystick-stick');
         let active = false;
+        let rect = zone.getBoundingClientRect();
+
+        const updateRect = () => { rect = zone.getBoundingClientRect(); };
+        window.addEventListener('resize', updateRect);
+        window.addEventListener('scroll', updateRect);
 
         const handleMove = (e) => {
             if (!active) return;
             e.preventDefault();
+            e.stopPropagation();
+            
             const touch = e.touches ? e.touches : e;
-            const rect = zone.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             
@@ -190,38 +211,51 @@
             window.joystickData.y = dy / max;
         };
 
-        zone.addEventListener('touchstart', (e) => { active = true; handleMove(e); }, {passive: false});
-        zone.addEventListener('mousedown', (e) => { active = true; handleMove(e); });
+        zone.addEventListener('touchstart', (e) => { 
+            active = true; 
+            updateRect(); 
+            handleMove(e); 
+        }, {passive: false});
+        
+        zone.addEventListener('mousedown', (e) => { 
+            active = true; 
+            updateRect(); 
+            handleMove(e); 
+        });
 
-        const resetJoystick = () => {
+        const resetJoystick = (e) => {
+            if (!active) return;
             active = false;
             stick.style.left = '50%';
             stick.style.top = '50%';
             window.joystickData = { x: 0, y: 0 };
         };
 
-        window.addEventListener('touchend', resetJoystick);
+        window.addEventListener('touchend', resetJoystick, {passive: false});
         window.addEventListener('mouseup', resetJoystick);
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('mousemove', handleMove);
 
-        // BUTTON INTERACTION
-        document.getElementById('btn-a').addEventListener('touchstart', (e) => {
+        // BUTTON A: FIXED RAYCASTER LOGIC
+        const btnA = document.getElementById('btn-a');
+        const triggerA = (e) => {
             e.preventDefault();
-            const camera = document.querySelector('a-camera');
+            e.stopPropagation();
+            const camera = document.getElementById('main-cam');
             const raycaster = camera.components.raycaster;
-            if (raycaster && raycaster.intersections.length > 0) {
+            if (raycaster && raycaster.intersections && raycaster.intersections.length > 0) {
                 const intersect = raycaster.intersections;
-                if (intersect.object.el.classList.contains('clickable')) {
+                if (intersect.object && intersect.object.el && intersect.object.el.classList.contains('clickable')) {
                     intersect.object.el.emit('click');
                 }
             }
-        }, {passive: false});
+        };
+        btnA.addEventListener('touchstart', triggerA, {passive: false});
+        btnA.addEventListener('mousedown', triggerA);
 
-        document.getElementById('btn-b').addEventListener('touchstart', (e) => { 
-            e.preventDefault(); 
-            location.reload(); 
-        }, {passive: false});
+        const btnB = document.getElementById('btn-b');
+        btnB.addEventListener('touchstart', (e) => { e.preventDefault(); location.reload(); }, {passive: false});
+        btnB.addEventListener('mousedown', () => location.reload());
 
         // 10 QUESTION BANK
         const bank = [
@@ -258,11 +292,11 @@
 
             data.o.forEach((opt, i) => {
                 const el = document.createElement('a-entity');
-                el.setAttribute('position', `0 ${0.25 - (i * 0.22)} 0`);
+                el.setAttribute('position', `0 ${0.3 - (i * 0.24)} 0`);
                 
                 const bg = document.createElement('a-plane');
-                bg.setAttribute('width', '1');
-                bg.setAttribute('height', '0.18');
+                bg.setAttribute('width', '1.1');
+                bg.setAttribute('height', '0.2');
                 bg.setAttribute('color', '#eee');
                 bg.setAttribute('class', 'clickable');
                 
@@ -278,7 +312,7 @@
                 txt.setAttribute('value', opt);
                 txt.setAttribute('color', '#1a0f05');
                 txt.setAttribute('align', 'center');
-                txt.setAttribute('width', '0.9');
+                txt.setAttribute('width', '1');
                 txt.setAttribute('position', '0 0 0.01');
 
                 el.appendChild(bg);
