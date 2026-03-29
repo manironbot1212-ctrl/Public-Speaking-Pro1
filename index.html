@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luxury Executive Suite - Pro Edition</title>
+    <title>Executive Tech Interview - 10 Stage Evaluation</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         
-        /* GUI Overlay for Joystick and Buttons */
         #gui {
             position: absolute;
             bottom: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 100;
         }
 
-        /* Virtual Joystick (X/Y) */
         #joystick-zone {
             position: absolute;
             bottom: 40px; left: 40px;
@@ -38,7 +36,6 @@
             pointer-events: none;
         }
 
-        /* Action Buttons (A/B) */
         .action-btn {
             position: absolute;
             width: 70px; height: 70px;
@@ -65,32 +62,29 @@
         }
     </style>
     <script>
-        // Global state for X/Y movement
         window.joystickData = { x: 0, y: 0 };
 
         AFRAME.registerComponent('joystick-move', {
             schema: { speed: { default: 0.1 } },
-            tick: function (time, delta) {
+            tick: function () {
                 if (window.joystickData.x === 0 && window.joystickData.y === 0) return;
 
                 const camera = document.querySelector('a-camera');
                 const rig = this.el;
                 
-                // Get rotation from camera's object3D directly for better accuracy in AR/VR
-                const rotation = camera.object3D.rotation;
-                const angle = rotation.y;
+                // Simplified Movement logic
+                // 1. Get current camera rotation in radians
+                const angle = camera.object3D.rotation.y;
 
-                // Move direction calculation: y is forward/back, x is strafe
-                // We use -joystickData.y because "forward" in A-Frame is -Z
-                const forward = -window.joystickData.y;
-                const strafe = window.joystickData.x;
+                // 2. Calculate movement vectors based on joystick input
+                // Forward/Back uses joystick Y, Strafe uses joystick X
+                const dx = window.joystickData.x * Math.cos(angle) + window.joystickData.y * Math.sin(angle);
+                const dz = window.joystickData.x * Math.sin(angle) - window.joystickData.y * Math.cos(angle);
 
-                const moveX = strafe * Math.cos(angle) + forward * Math.sin(angle);
-                const moveZ = strafe * Math.sin(angle) - forward * Math.cos(angle);
-
+                // 3. Apply to position
                 const pos = rig.getAttribute('position');
-                pos.x += moveX * this.data.speed;
-                pos.z += moveZ * this.data.speed;
+                pos.x += dx * this.data.speed;
+                pos.z += dz * this.data.speed;
                 rig.setAttribute('position', pos);
             }
         });
@@ -98,90 +92,75 @@
 </head>
 <body>
 
-    <div id="overlay-msg">Joystick to move | A: Select | B: Reset</div>
+    <div id="overlay-msg">Joystick: Move | A: Select | B: Reset</div>
 
-    <!-- UI LAYER -->
     <div id="gui">
-        <div id="joystick-zone">
-            <div id="joystick-stick"></div>
-        </div>
+        <div id="joystick-zone"><div id="joystick-stick"></div></div>
         <div id="btn-a" class="action-btn">A</div>
         <div id="btn-b" class="action-btn">B</div>
     </div>
 
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" shadow="type: pcfsoft">
         
-        <!-- LUXURY ARCHITECTURE -->
-        <a-entity id="room">
-            <a-plane position="0 0 0" rotation="-90 0 0" width="20" depth="20" color="#2b1d0e" material="roughness: 0.3"></a-plane>
-            <a-box position="0 4.5 0" width="12" height="0.2" depth="12" color="#f5f5f5"></a-box>
-            <a-box position="0 4.4 0" width="8" height="0.3" depth="8" color="#ffffff" material="emissive: #ffccaa; emissiveIntensity: 0.15"></a-box>
-            <a-plane position="0 2.25 -6" width="12" height="4.5" color="#2f3e30"></a-plane> 
-            <a-plane position="-6 2.25 0" rotation="0 90 0" width="12" height="4.5" color="#3a3a3a"></a-plane>
-            <a-plane position="6 2.25 0" rotation="0 -90 0" width="12" height="4.5" color="#3a3a3a"></a-plane>
-            <a-box position="0 0.1 -5.95" width="12" height="0.2" depth="0.1" color="#1a0f05"></a-box>
+        <!-- ROOM DESIGN -->
+        <a-entity id="environment">
+            <a-plane position="0 0 0" rotation="-90 0 0" width="30" depth="30" color="#2b1d0e" material="roughness: 0.4"></a-plane>
+            <a-box position="0 4.5 0" width="16" height="0.2" depth="16" color="#f5f5f5"></a-box>
+            <a-plane position="0 2.25 -8" width="16" height="4.5" color="#2f3e30"></a-plane> 
+            <a-plane position="-8 2.25 0" rotation="0 90 0" width="16" height="4.5" color="#3a3a3a"></a-plane>
+            <a-plane position="8 2.25 0" rotation="0 -90 0" width="16" height="4.5" color="#3a3a3a"></a-plane>
         </a-entity>
 
-        <!-- DECORATIONS -->
-        <a-entity position="-4 2 -5.8">
-            <a-box width="3" height="0.05" depth="0.4" color="#1a0f05" position="0 0.8 0"></a-box>
-            <a-box width="3" height="0.05" depth="0.4" color="#1a0f05" position="0 0.2 0"></a-box>
-            <a-box width="0.1" height="0.4" depth="0.3" color="#800" position="-1 1.05 0"></a-box>
-            <a-box width="0.12" height="0.38" depth="0.3" color="#040" position="-0.7 1.05 0"></a-box>
-        </a-entity>
-
-        <a-entity position="3 2.5 -5.9">
-            <a-box width="2" height="1.5" depth="0.05" color="#111"></a-box>
-            <a-plane position="0 0 0.03" width="1.8" height="1.3" color="#eee"></a-plane>
-        </a-entity>
-
-        <!-- LIGHTING -->
         <a-entity light="type: ambient; color: #ffe6cc; intensity: 0.5"></a-entity>
-        <a-entity light="type: point; intensity: 0.7; distance: 12; color: #fff4e6" position="0 3.5 -1"></a-entity>
+        <a-entity light="type: point; intensity: 0.8; distance: 15; color: #fff" position="0 4 -2"></a-entity>
         
-        <!-- DESK -->
-        <a-entity position="0 0 -1.8">
-            <a-box width="3.5" height="0.1" depth="1.5" position="0 0.85 0" color="#1a0f05"></a-box>
-            <a-box width="0.6" height="0.02" depth="0.4" position="1 0.86 0.1" rotation="0 -20 0" color="#222">
-                <a-plane width="0.55" height="0.35" position="0 0.01 0.2" rotation="-110 0 0" color="#000" material="emissive: #0088ff; emissiveIntensity: 0.3"></a-plane>
+        <!-- DESK AREA -->
+        <a-entity position="0 0 -2.5">
+            <a-box width="4" height="0.1" depth="1.8" position="0 0.85 0" color="#1a0f05"></a-box>
+            <a-box width="0.7" height="0.02" depth="0.5" position="1.2 0.86 0.2" rotation="0 -15 0" color="#222">
+                <a-plane width="0.65" height="0.45" position="0 0.01 0.25" rotation="-110 0 0" color="#000" material="emissive: #00f; emissiveIntensity: 0.2"></a-plane>
             </a-box>
         </a-entity>
         
-        <!-- INTERVIEWER -->
-        <a-entity id="interviewer" position="0 0 -3">
-            <a-cylinder position="0 0.8 0" radius="0.35" height="1.6" color="#1a1a1a"></a-cylinder> 
-            <a-sphere position="0 1.8 0" radius="0.25" color="#f3c2a8"></a-sphere>
+        <!-- INTERVIEWER & CLIPBOARD -->
+        <a-entity id="interviewer" position="0 0 -4">
+            <a-cylinder position="0 0.8 0" radius="0.4" height="1.6" color="#111"></a-cylinder> 
+            <a-sphere position="0 1.9 0" radius="0.28" color="#f3c2a8"></a-sphere>
             
-            <a-entity id="clipboard" position="0.6 1.4 1.1" rotation="-15 -25 0">
-                <a-box width="1" height="1.3" depth="0.04" color="#3d2b1f">
-                    <a-plane position="0 0 0.03" width="0.9" height="1.2" color="#fff9f0">
-                        <a-text id="q-text" value="Welcome. Let us begin." color="#2b1d0e" align="center" width="0.8" position="0 0.45 0.01"></a-text>
-                        <a-entity id="options-container" position="0 0.05 0.01"></a-entity>
+            <a-entity id="clipboard" position="0.8 1.4 1.2" rotation="-10 -30 0">
+                <a-box width="1.2" height="1.6" depth="0.05" color="#3d2b1f">
+                    <a-plane position="0 0.05 0.03" width="1.1" height="1.4" color="#fff9f0">
+                        <a-text id="q-text" value="Welcome to the interview." color="#1a0f05" align="center" width="1" position="0 0.55 0.01" wrap-count="20"></a-text>
+                        <a-entity id="options-container" position="0 -0.1 0.01"></a-entity>
+                        <a-text id="progress-text" value="Question 1 of 10" color="#888" align="center" width="0.8" position="0 -0.65 0.01"></a-text>
                     </a-plane>
                 </a-box>
             </a-entity>
         </a-entity>
 
-        <a-entity id="rig" position="0 0 1.5" joystick-move>
+        <!-- RIG & CAMERA -->
+        <a-entity id="rig" position="0 0 1" joystick-move>
             <a-camera look-controls="pointerLockEnabled: false">
-                <!-- Visual reticle for button 'A' targeting -->
                 <a-entity cursor="fuse: false" 
                           position="0 0 -1" 
-                          geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" 
-                          material="color: #d4af37; shader: flat; opacity: 0.5">
+                          geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.025" 
+                          material="color: #d4af37; shader: flat; opacity: 0.7">
                 </a-entity>
             </a-camera>
         </a-entity>
 
-        <a-entity id="results-screen" position="0 2 -1.5" visible="false">
-            <a-plane width="3" height="2" color="#2b1d0e" material="opacity: 0.95">
-                <a-text id="final-score" value="" align="center" width="2.5" position="0 0.3 0.1" color="#fdf6e3"></a-text>
+        <a-entity id="results-screen" position="0 2 -2" visible="false">
+            <a-plane width="4" height="2.5" color="#1a0f05" material="opacity: 0.9">
+                <a-text id="final-score" value="" align="center" width="3.5" position="0 0.2 0.1" color="#d4af37"></a-text>
+                <a-box position="0 -0.7 0.2" width="1.5" height="0.4" color="#2f3e30" class="clickable" onclick="location.reload()">
+                    <a-text value="RESTART" align="center" width="3" position="0 0 0.06"></a-text>
+                </a-box>
             </a-plane>
         </a-entity>
     </a-scene>
 
     <script>
-        // JOYSTICK LOGIC
+        // JOYSTICK INPUT HANDLING
         const zone = document.getElementById('joystick-zone');
         const stick = document.getElementById('joystick-stick');
         let active = false;
@@ -207,7 +186,6 @@
             stick.style.left = (50 + (dx / rect.width) * 100) + '%';
             stick.style.top = (50 + (dy / rect.height) * 100) + '%';
             
-            // Normalize values for the movement script
             window.joystickData.x = dx / max;
             window.joystickData.y = dy / max;
         };
@@ -215,50 +193,48 @@
         zone.addEventListener('touchstart', (e) => { active = true; handleMove(e); }, {passive: false});
         zone.addEventListener('mousedown', (e) => { active = true; handleMove(e); });
 
-        window.addEventListener('touchend', () => {
+        const resetJoystick = () => {
             active = false;
             stick.style.left = '50%';
             stick.style.top = '50%';
             window.joystickData = { x: 0, y: 0 };
-        });
-        window.addEventListener('mouseup', () => {
-            active = false;
-            stick.style.left = '50%';
-            stick.style.top = '50%';
-            window.joystickData = { x: 0, y: 0 };
-        });
+        };
 
+        window.addEventListener('touchend', resetJoystick);
+        window.addEventListener('mouseup', resetJoystick);
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('mousemove', handleMove);
 
-        // A/B BUTTON LOGIC
-        const btnA = document.getElementById('btn-a');
-        const triggerA = (e) => {
+        // BUTTON INTERACTION
+        document.getElementById('btn-a').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            // Trigger raycaster click from the camera center
             const camera = document.querySelector('a-camera');
             const raycaster = camera.components.raycaster;
             if (raycaster && raycaster.intersections.length > 0) {
-                const intersection = raycaster.intersections;
-                if (intersection.object.el.classList.contains('clickable')) {
-                    intersection.object.el.emit('click');
+                const intersect = raycaster.intersections;
+                if (intersect.object.el.classList.contains('clickable')) {
+                    intersect.object.el.emit('click');
                 }
             }
-        };
+        }, {passive: false});
 
-        btnA.addEventListener('touchstart', triggerA, {passive: false});
-        btnA.addEventListener('mousedown', triggerA);
+        document.getElementById('btn-b').addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            location.reload(); 
+        }, {passive: false});
 
-        const btnB = document.getElementById('btn-b');
-        btnB.addEventListener('touchstart', (e) => { e.preventDefault(); location.reload(); }, {passive: false});
-        btnB.addEventListener('mousedown', () => location.reload());
-
-        // INTERVIEW LOGIC
+        // 10 QUESTION BANK
         const bank = [
-            { q: "Scope of 'const' in JS?", o: ["Global only", "Block scope", "Function only", "None"], a: 1 },
-            { q: "React state hook?", o: ["useEffect", "useMemo", "useState", "useRef"], a: 2 },
-            { q: "CSS Flex center items?", o: ["align-items", "justify-content", "padding", "margin"], a: 1 },
-            { q: "HTML Nav tag?", o: ["<nav>", "<div>", "<section>", "<header>"], a: 0 }
+            { q: "1. Which keyword defines a block-scoped variable?", o: ["var", "let", "global", "static"], a: 1 },
+            { q: "2. What is the default value of a boolean in JS?", o: ["true", "false", "undefined", "null"], a: 1 },
+            { q: "3. Which React hook handles side effects?", o: ["useState", "useContext", "useEffect", "useMemo"], a: 2 },
+            { q: "4. What does CSS stand for?", o: ["Creative Style Sheets", "Cascading Style Sheets", "Color Style Sheets", "Computer Style Sheets"], a: 1 },
+            { q: "5. Which HTML tag is used for the largest heading?", o: ["<head>", "<h6>", "<h1>", "<heading>"], a: 2 },
+            { q: "6. How do you select an ID in CSS?", o: [".name", "#name", "*name", "@name"], a: 1 },
+            { q: "7. Which company developed React?", o: ["Google", "Twitter", "Facebook", "Microsoft"], a: 2 },
+            { q: "8. What is 'NaN' in JavaScript?", o: ["Not a Number", "New and Now", "Name and Node", "Nothing at Night"], a: 0 },
+            { q: "9. Which array method adds to the end?", o: ["pop()", "shift()", "push()", "unshift()"], a: 2 },
+            { q: "10. What is 2 + '2' in JavaScript?", o: ["4", "'22'", "NaN", "Error"], a: 1 }
         ];
 
         let index = 0;
@@ -268,35 +244,49 @@
             if (index >= bank.length) {
                 document.getElementById('clipboard').setAttribute('visible', 'false');
                 document.getElementById('results-screen').setAttribute('visible', 'true');
-                document.getElementById('final-score').setAttribute('value', `SCORE: ${score}/${bank.length}`);
+                const grade = score >= 7 ? "HIRED" : "NOT HIRED";
+                document.getElementById('final-score').setAttribute('value', `INTERVIEW COMPLETE\n\nSCORE: ${score} / 10\nSTATUS: ${grade}`);
                 return;
             }
+
             const data = bank[index];
             document.getElementById('q-text').setAttribute('value', data.q);
+            document.getElementById('progress-text').setAttribute('value', `Question ${index + 1} of 10`);
+            
             const container = document.getElementById('options-container');
             container.innerHTML = "";
 
             data.o.forEach((opt, i) => {
                 const el = document.createElement('a-entity');
-                el.setAttribute('position', `0 ${0.15 - (i * 0.2)} 0`);
-                const bg = document.createElement('a-plane');
-                bg.setAttribute('width', '0.8'); bg.setAttribute('height', '0.15');
-                bg.setAttribute('color', '#fdf6e3'); bg.setAttribute('class', 'clickable');
+                el.setAttribute('position', `0 ${0.25 - (i * 0.22)} 0`);
                 
-                // Use .emit('click') style for compatibility with Button A trigger
-                el.addEventListener('click', () => { 
-                    if(i === data.a) score++; 
-                    index++; 
-                    updateUI(); 
+                const bg = document.createElement('a-plane');
+                bg.setAttribute('width', '1');
+                bg.setAttribute('height', '0.18');
+                bg.setAttribute('color', '#eee');
+                bg.setAttribute('class', 'clickable');
+                
+                bg.addEventListener('mouseenter', () => bg.setAttribute('color', '#d4af37'));
+                bg.addEventListener('mouseleave', () => bg.setAttribute('color', '#eee'));
+                bg.addEventListener('click', () => {
+                    if (i === data.a) score++;
+                    index++;
+                    updateUI();
                 });
 
                 const txt = document.createElement('a-text');
-                txt.setAttribute('value', opt); txt.setAttribute('color', '#2b1d0e');
-                txt.setAttribute('align', 'center'); txt.setAttribute('width', '0.7');
-                el.appendChild(bg); el.appendChild(txt);
+                txt.setAttribute('value', opt);
+                txt.setAttribute('color', '#1a0f05');
+                txt.setAttribute('align', 'center');
+                txt.setAttribute('width', '0.9');
+                txt.setAttribute('position', '0 0 0.01');
+
+                el.appendChild(bg);
+                el.appendChild(txt);
                 container.appendChild(el);
             });
         }
+
         window.onload = updateUI;
     </script>
 </body>
